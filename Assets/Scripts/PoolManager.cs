@@ -7,6 +7,7 @@ public class PoolManager : MonoBehaviour
     [Header("Pool Settings")]
     [SerializeField] List<PoolInfo> poolList;
     private Dictionary<string, IObjectPool<GameObject>> poolDictionary;
+    private Dictionary<string, PoolInfo> poolInfoDictionary;
     protected IObjectPool<GameObject> pool;
 
     protected virtual void Awake()
@@ -17,16 +18,19 @@ public class PoolManager : MonoBehaviour
     protected void InitPools()
     {
         poolDictionary = new Dictionary<string, IObjectPool<GameObject>>();
-        
+        poolInfoDictionary = new Dictionary<string, PoolInfo>();
+
         foreach (var info in poolList)
         {
             PoolInfo currentInfo = info;
+            poolInfoDictionary.Add(currentInfo.poolName, currentInfo);
+
             IObjectPool<GameObject> newPool = new ObjectPool<GameObject>(
                 
                 createFunc: () => 
                 {
                     // currentInfo.prefab 캡쳐
-                    GameObject obj = Instantiate(currentInfo.prefab);
+                    GameObject obj = Instantiate(currentInfo.prefab,transform);
                     obj.name = currentInfo.poolName + "_Pooled"; // 디버깅용 이름 변경
 
                     // 생성된 오브젝트에게 "너네 집(Pool)은 여기야"라고 알려주기 (Self-Return 패턴)
@@ -35,8 +39,16 @@ public class PoolManager : MonoBehaviour
                     
                     return obj;
                 },
-                actionOnGet: OnTakeFromPool, 
-                actionOnRelease: OnReturnToPool, 
+                actionOnGet: (obj) =>
+                {
+                    OnTakeFromPool(obj);
+                    currentInfo.activeCount++;
+                },
+                actionOnRelease: (obj) =>
+                {
+                    OnReturnToPool(obj);
+                    currentInfo.activeCount--;
+                },
                 actionOnDestroy: OnDestroyPoolObject, 
                 collectionCheck: true,
                 defaultCapacity: currentInfo.defaultCapacity,
@@ -63,20 +75,20 @@ public class PoolManager : MonoBehaviour
 
     public GameObject Get(string poolName)
     {
-        if(poolDictionary.ContainsKey(poolName))
+        // 최대 활성화 수 체크 먼저
+        if(poolInfoDictionary[poolName].activeCount >= poolInfoDictionary[poolName].maxActiveCount)
         {
-            GameObject obj = poolDictionary[poolName].Get();
-            // 여기서 오브젝트에게 자기 풀을 알려줍니다. 
-            // 예시: BaseEnemy 컴포넌트가 있다면 찾아서 주입
-            // BaseEnemy enemy = obj.GetComponent<BaseEnemy>();
-            // if (enemy != null) enemy.SetPool(poolDictionary[poolName]);
-
-            Enemy enemy = obj.GetComponent<Enemy>();
-            if(enemy != null) enemy.SetPool(poolDictionary[poolName]);
-            return obj;
+            return null;
         }
+        
+        GameObject obj = poolDictionary[poolName].Get();
+        // 여기서 오브젝트에게 자기 풀을 알려줍니다. 
+        // 예시: BaseEnemy 컴포넌트가 있다면 찾아서 주입
+        // BaseEnemy enemy = obj.GetComponent<BaseEnemy>();
+        // if (enemy != null) enemy.SetPool(poolDictionary[poolName]);
 
-        Debug.LogError($"PoolManager: {poolName} 이름의 풀은 없습니다.");
-        return null;
+        Enemy enemy = obj.GetComponent<Enemy>();
+        if(enemy != null) enemy.SetPool(poolDictionary[poolName]);
+        return obj;
     }
 }

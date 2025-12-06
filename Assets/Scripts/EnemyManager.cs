@@ -1,6 +1,39 @@
+using System.Collections;
 using UnityEngine;
 
 public class EnemyManager : PoolManager
 {
-    // Future enemy-specific logic (e.g., spawn waves) can be added here.
+    public EnemyManager enemyManager;
+    public Transform playerTransform;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        enemyManager = this;
+        playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+    }
+
+    void Start()
+    {
+        StartCoroutine(SpawnRoutine());
+    }
+
+    IEnumerator SpawnRoutine()
+    {
+        while(true)
+        {
+            Vector2 spawnPosition = (Vector2)playerTransform.position + Random.insideUnitCircle.normalized * 10f;
+
+            float random = Mathf.Round(Random.Range(0f, 1f));
+            string enemyName = random == 0 ? "Zombie" : "Skeleton";
+            GameObject enemyObj = Get(enemyName);
+            if(enemyObj != null)
+            {
+                enemyObj.transform.position = spawnPosition;
+                // 단계적인 강화를 원한다면 여기서
+            }
+
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
 }
