@@ -6,7 +6,7 @@ using UnityEngine.Pool;
 [RequireComponent(typeof(CapsuleCollider2D))]
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(SpriteRenderer))]
-public class Enemy : MonoBehaviour
+public class Enemy : MonoBehaviour, IDamageable
 {
 
     private IObjectPool<GameObject> myPool;
@@ -31,7 +31,7 @@ public class Enemy : MonoBehaviour
     protected SpriteRenderer sprite;
     protected CapsuleCollider2D body;
 
-    public float Health = 10f;
+    public float Health { get; private set; } = 10f;
     public float maxHealth = 10f;
     public float speed = 1f;
     public float attackRange = 1.5f;
@@ -69,6 +69,16 @@ public class Enemy : MonoBehaviour
             target = GameObject.FindGameObjectWithTag("Player");
         }
     }
+    
+    public void TakeDamage(float damage)
+    {
+        Health -= damage;
+        if (Health <= 0)
+        {
+            Die();
+        }
+    }
+    
     protected  void CreateAttackRange()
     {
         GameObject rangeObj = new GameObject("Attack Range");
