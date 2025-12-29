@@ -72,7 +72,7 @@ public class Movement : MonoBehaviour
 
         if (rawInput != Vector2.zero)
         {
-            Debug.Log("현재 입력: " + rawInput);
+            //Debug.Log("현재 입력: " + rawInput);
             rb.MovePosition(rb.position + rawInput * movementSpeed * Time.fixedDeltaTime);
         }
         else

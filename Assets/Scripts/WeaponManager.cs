@@ -34,6 +34,8 @@ public class WeaponManager : MonoBehaviour
             weaponSlot = slot;
         }
 
+        weaponSlot.localPosition = Vector3.zero;
+
         // 3. initialWeaponPrefabs 리스트에 있는 모든 초기 무기를 AddWeapon 메서드를 사용하여 장착합니다.
         foreach (var prefab in initialWeaponPrefabs)
         {
@@ -56,6 +58,7 @@ public class WeaponManager : MonoBehaviour
 
         // 2. weaponSlot을 부모로 하여 무기 프리팹을 인스턴스화(Instantiate)합니다.
         GameObject weaponInstance = Instantiate(weaponPrefab, weaponSlot);
+        weaponInstance.transform.position = Vector3.zero;
         
         // 3. 생성된 무기 인스턴스에서 BaseWeapon 컴포넌트를 가져옵니다.
         BaseWeapon weapon = weaponInstance.GetComponent<BaseWeapon>();
