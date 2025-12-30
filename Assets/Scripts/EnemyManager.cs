@@ -13,6 +13,19 @@ public class EnemyManager : PoolManager
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
     }
 
+    public new GameObject Get(string poolName)
+    {
+        GameObject obj = base.Get(poolName);
+        if (obj == null) return null;
+
+        Enemy enemy = obj.GetComponent<Enemy>();
+        if (enemy != null)
+        {
+            enemy.SetPool(poolDictionary[poolName]);
+        }
+        return obj;
+    }
+
     void Start()
     {
         StartCoroutine(SpawnRoutine());

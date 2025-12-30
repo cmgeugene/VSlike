@@ -14,14 +14,14 @@ public class RepositionTileMap : MonoBehaviour
         }
         Debug.Log($"OnTriggerExit2D fired by {collision.name} ({collision.tag})");
 
-        if (GameManager.instance == null || GameManager.instance.player == null || GameManager.instance.player.Movement == null) return;
+        if (GameManager.instance == null || GameManager.instance.Player == null || GameManager.instance.Player.Movement == null) return;
 
-        Vector3 playerPosition = GameManager.instance.player.transform.position;
+        Vector3 playerPosition = GameManager.instance.Player.transform.position;
         Vector3 myPos = transform.position;
         float diffX = MathF.Abs(playerPosition.x - myPos.x);
         float diffY = MathF.Abs(playerPosition.y - myPos.y);
 
-        Vector2 playerDir = GameManager.instance.player.Movement.inputVector;
+        Vector2 playerDir = GameManager.instance.Player.Movement.inputVector;
         if (playerDir == Vector2.zero)
         {
             // 입력이 없으면 플레이어의 상대 위치로 방향 결정

@@ -8,6 +8,7 @@ public class Projectile : MonoBehaviour
     private float speed;
     private Vector2 direction;
     private IObjectPool<GameObject> myPool;
+    private bool isReleased = false;
 
     public void Init(float damage, int penetration, float speed, Vector2 direction)
     {
@@ -15,6 +16,7 @@ public class Projectile : MonoBehaviour
         this.penetration = penetration;
         this.speed = speed;
         this.direction = direction;
+        isReleased = false;
 
         if (direction != Vector2.zero)
         {
@@ -35,31 +37,37 @@ public class Projectile : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        if (isReleased) return;
+
         // 다른 발사체와 충돌할 경우 무시
         if (other.CompareTag("Player") || other.GetComponent<Projectile>()!= null)
         {
-            Debug.Log("다른 발사체와 충돌!");
             return;
         } 
 
         IDamageable damageable = other.GetComponent<IDamageable>();
         if (damageable != null)
         {
-            damageable.TakeDamage(damage);
-            if (penetration > 0)
+            // 1. 관통 횟수 차감 및 제거 여부 먼저 결정
+            penetration--;
+            bool shouldRelease = penetration <= 0;
+
+            // 2. 소멸해야 한다면 즉시 상태 변경 및 반환
+            if (shouldRelease)
             {
-                penetration--;
-                if(penetration == 0)
-                {
-                    Release();
-                }
+                Release();
             }
+            // 3. 데미지 처리 (적의 사망 로직에서 예외가 발생해도 발사체는 이미 처리됨)
+            damageable.TakeDamage(damage);
         }
     }
 
     private void Release()
     {
-        if(myPool != null) myPool.Release(gameObject);
+        if (isReleased) return;
+        isReleased = true;
+
+        if (myPool != null) myPool.Release(gameObject);
         else Destroy(gameObject);
     }
 

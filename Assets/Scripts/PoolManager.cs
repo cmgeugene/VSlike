@@ -44,7 +44,7 @@ public class PoolManager : MonoBehaviour
                 actionOnRelease: (obj) =>
                 {
                     OnReturnToPool(obj);
-                    currentInfo.activeCount--;
+                    currentInfo.activeCount = Mathf.Max(0, currentInfo.activeCount - 1);
                 },
                 actionOnDestroy: OnDestroyPoolObject, 
                 collectionCheck: true,
@@ -78,10 +78,6 @@ public class PoolManager : MonoBehaviour
             return null;
         }
         
-        GameObject obj = poolDictionary[poolName].Get();
-
-        Enemy enemy = obj.GetComponent<Enemy>();
-        if(enemy != null) enemy.SetPool(poolDictionary[poolName]);
-        return obj;
+        return poolDictionary[poolName].Get();
     }
 }

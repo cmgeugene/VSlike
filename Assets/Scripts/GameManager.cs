@@ -3,13 +3,18 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
-    public Player player;
+    [SerializeField] private Player player;
+    public Player Player => player;
     public EnemyManager enemyManager;
     public ProjectileManager projectileManager;
 
     void Awake()
     {
-        instance = this;
+        if (instance == null)
+            instance = this;
+        else
+            Destroy(gameObject);
     }
 
+    public Vector3 PlayerPosition => player != null ? player.transform.position : Vector3.zero;
 }
