@@ -11,7 +11,7 @@ public class MeleeWeaponInstance : MonoBehaviour
         if (damageable != null)
         {
             // 자신의 damage 값을 사용하여 피해를 줍니다.
-            damageable.TakeDamage(damage);
+            damageable.TakeDamage(damage, transform.position);
         }
     }
 }

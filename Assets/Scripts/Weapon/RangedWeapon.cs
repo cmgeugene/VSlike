@@ -82,4 +82,9 @@ public class RangedWeapon : BaseWeapon
             }
         }
     }
+
+    protected override void ApplyStats(int level)
+    {
+        base.ApplyStats(level);
+    }
 }

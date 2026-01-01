@@ -58,7 +58,7 @@ public class Projectile : MonoBehaviour
                 Release();
             }
             // 3. 데미지 처리 (적의 사망 로직에서 예외가 발생해도 발사체는 이미 처리됨)
-            damageable.TakeDamage(damage);
+            damageable.TakeDamage(damage, transform.position);
         }
     }
 

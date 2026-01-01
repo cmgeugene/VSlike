@@ -10,7 +10,7 @@ public class EnemyManager : PoolManager
     {
         base.Awake();
         enemyManager = this;
-        playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+        playerTransform = GameManager.instance.Player.transform;
     }
 
     public new GameObject Get(string poolName)
@@ -22,6 +22,7 @@ public class EnemyManager : PoolManager
         if (enemy != null)
         {
             enemy.SetPool(poolDictionary[poolName]);
+            enemy.Init(playerTransform);
         }
         return obj;
     }

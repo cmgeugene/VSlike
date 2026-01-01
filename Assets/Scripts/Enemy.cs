@@ -36,7 +36,11 @@ public class Enemy : MonoBehaviour, IDamageable
     public float maxHealth = 10f;
     public float speed = 1f;
     public float attackRange = 1.5f;
-    public GameObject target;
+    protected Transform target; 
+    
+    // 처치 이벤트 관련
+    public SO_EnemyData enemyData;
+    public static event System.Action<SO_EnemyData> OnEnemyDeath;
 
     // 피격 관련 변수들
     bool isKnockback = false;
@@ -48,15 +52,16 @@ public class Enemy : MonoBehaviour, IDamageable
         if(other.gameObject.CompareTag("Player"))
         {
             Attack();
+            IDamageable player_damageable = other.GetComponent<IDamageable>();
+            if(player_damageable != null)
+            {
+                player_damageable.TakeDamage(enemyData.damage, transform.position);
+            }
         }
     }
 
     protected void Awake()
     {
-        if(!target)
-        {
-            target = GameObject.FindGameObjectWithTag("Player");
-        }
         
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
@@ -75,18 +80,17 @@ public class Enemy : MonoBehaviour, IDamageable
         rb.simulated = true;
         sprite.sortingOrder = 10;
         anim.SetBool("Dead", false);
-
-        if (target == null)
-        {
-            target = GameManager.instance.Player.gameObject;
-        }
     }
 
-    IEnumerator Knockback()
+    public void Init(Transform targetTransform)
+    {
+        target = targetTransform;
+    }
+
+    IEnumerator Knockback(Vector3 attackerPosition)
     {
         isKnockback = true;
-        Vector3 playerPos = GameManager.instance.PlayerPosition;
-        Vector3 direction = (transform.position - playerPos).normalized;
+        Vector3 direction = (transform.position - attackerPosition).normalized;
 
         // 기존 속도를 초기화하여 넉백 힘이 일정하게 적용되도록 함
         rb.linearVelocity = Vector2.zero;
@@ -100,7 +104,7 @@ public class Enemy : MonoBehaviour, IDamageable
         // yield return new WaitForSeconds(2f); 2초 쉬기
     }
     
-    public void TakeDamage(float damage)
+    public void TakeDamage(float damage, Vector3 attackerPosition)
     {
         // 이미 죽어서 풀에 반환 중인 적은 무시 (중복 Die 호출 방지)
         if (Health <= 0) return;
@@ -115,12 +119,13 @@ public class Enemy : MonoBehaviour, IDamageable
             rb.simulated = false;
             sprite.sortingOrder = 9;
             anim.SetBool("Dead", true);
-            //Die();
+            // Die()는 애니메이션 이벤트 호출
+            OnEnemyDeath?.Invoke(enemyData);
         }
         else
         {
             anim.SetTrigger("Hit");
-            StartCoroutine(Knockback());
+            StartCoroutine(Knockback(attackerPosition));
         }
     }
     
@@ -137,24 +142,19 @@ public class Enemy : MonoBehaviour, IDamageable
 
     protected void FixedUpdate()
     {
-        Move(target);    
+        Move();    
     }
     protected void Attack()
     {
         Debug.Log("공격");
     }
 
-    protected void Init()
-    {
-        
-    }
-
-    protected void Move(GameObject target)
+    protected void Move()
     {
         // 넉백 중이거나 타겟이 없으면 이동하지 않음
         if (isKnockback || isDead || target == null) return;
 
-        Vector2 direction = (target.transform.position - transform.position).normalized;
+        Vector2 direction = (target.position - transform.position).normalized;
         rb.MovePosition(rb.position + direction * speed * Time.fixedDeltaTime);
         sprite.flipX = direction.x < 0;
     }
